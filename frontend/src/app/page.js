@@ -71,21 +71,21 @@ export default function Home() {
     a.click();
   };
 
- const exportToXLSX = () => {
+  const exportToXLSX = () => {
     // Prepare data with headers
     const data = rateCardEntries.map((entry) => ({
         Description: entry.description,
         Identifier: entry.identifier,
         Zone: entry.zone,
         Discount: entry.discount,
-        "Published Price": entry.published_price, // Use matching key
-        "Client Cost": entry.client_cost,         // Use matching key
+        "Published Price": entry.published_price,
+        "Client Cost": entry.client_cost,
     }));
 
-    // Create a worksheet from the data
+    // Create a worksheet from the data (this already includes data and headers)
     const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // Create the header row with styling
+    // Style the header row
     const headerRow = [
         { v: "Description", s: { fill: { fgColor: { rgb: "CCCCCC" } }, font: { bold: true } } },
         { v: "Identifier", s: { fill: { fgColor: { rgb: "CCCCCC" } }, font: { bold: true } } },
@@ -95,20 +95,17 @@ export default function Home() {
         { v: "Client Cost", s: { fill: { fgColor: { rgb: "CCCCCC" } }, font: { bold: true } } },
     ];
 
-    // Add header to worksheet
+    // Apply header styling to the first row (manually update the worksheet)
     headerRow.forEach((cell, index) => {
-        const cellAddress = XLSX.utils.encode_cell({ c: index, r: 0 }); // Cell address for header
+        const cellAddress = XLSX.utils.encode_cell({ c: index, r: 0 }); // Encode cell for the header row
         worksheet[cellAddress] = cell; // Assign the styled header cell
     });
 
-    // Append data to worksheet
-    XLSX.utils.sheet_add_json(worksheet, data, { header: ["Description", "Identifier", "Zone", "Discount", "Published Price", "Client Cost"], skipHeader: true, origin: -1 });
-
-    // Create a workbook and add the worksheet
+    // Create a new workbook and append the worksheet
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "RateCard");
 
-    // Save the workbook
+    // Write the workbook to file
     XLSX.writeFile(workbook, "rate_card.xlsx");
 };
 
