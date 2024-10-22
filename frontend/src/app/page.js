@@ -1,5 +1,6 @@
 "use client";
 
+import axios from "axios";
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
@@ -16,23 +17,30 @@ export default function Home() {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  const [clientCost, setClientCost] = useState(null)
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleAdd = () => {
-    const clientCost =
-      parseFloat(formData.published_price) * (1 - formData.discount / 100);
-
-    const newEntry = { ...formData, client_cost: clientCost };
-    setRateCardEntries([...rateCardEntries, newEntry]);
-    setFormData({
-      description: "",
-      identifier: "Express",
-      zone: "",
-      discount: 0,
-      published_price: 0,
-    });
+  const handleAdd = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post("https://rate-card-app.onrender.com/calculate", formData);
+      console.log("Server Response:", response.data);
+      const newEntry = {
+        ...formData,
+        client_cost: response.data.client_cost,
+      };
+      setRateCardEntries([...rateCardEntries, newEntry]); // Add new entry to array
+      console.log("New Entry:", newEntry);
+      setFormData({ description: "", identifier: "", zone: "", discount: 0, published_price: 0}); // Reset form
+    } catch (error) {
+      console.error("There was an error!", error);
+    }
   };
 
   const exportToCSV = () => {
